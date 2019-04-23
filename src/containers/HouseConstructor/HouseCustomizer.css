@@ -1,0 +1,11 @@
+.planeInput
+{
+    width: 50px;
+    padding: 5px;
+    -moz-appearance:textfield;
+}
+
+.planeInput::-webkit-outer-spin-button,
+.planeInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}

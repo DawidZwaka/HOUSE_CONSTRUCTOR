@@ -1,0 +1,27 @@
+.burgerMenu, .burgerMenu::after, .burgerMenu::before
+{
+    width: 30px; 
+    height: 2px;
+    background: black;
+    position: relative;
+    padding: 0;
+    margin: 0;
+}
+.burgerMenu
+{
+    margin: 10px 0;
+    flex: 0 0 30px;
+    transform: translateX(7px);
+}
+.burgerMenu::after
+{
+    position: absolute;
+    content: '';
+    margin-top: 5px;
+}
+.burgerMenu::before
+{
+    position: absolute;
+    content: '';
+    margin-top: 10px;
+}
