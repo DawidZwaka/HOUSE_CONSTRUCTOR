@@ -4,6 +4,9 @@ import MainMenu from '../../UI/MainMenu/MainMenu';
 import './HouseCustomizer.css';
 import VertexShader from '../../shaders/vertex';
 import FragmentShader from '../../shaders/fragmentShader';
+import Styled from 'styled-components';
+import ToolBar from '../../components/ToolBar/ToolBar';
+
 
 class HouseConstructor extends React.Component
 {
@@ -20,7 +23,7 @@ class HouseConstructor extends React.Component
             size: [4,2,4]
         },
         houseAddons: {
-            garage: {
+            /*garage: {
                 materialFunc: 'lambertMesh',
                 materialProps: {
                     color: '#f9f9f9',
@@ -28,7 +31,7 @@ class HouseConstructor extends React.Component
                 GeometryFunc: 'cuboid',
                 size: [2,1,3],
                 position: 'left'
-            },/*
+            },
             roof:{
                 materialFunc: 'lambertMesh',
                 materialProps: {
@@ -42,7 +45,16 @@ class HouseConstructor extends React.Component
         interimWidth: 1,
         interimHeight: 1,
         interimDepth: 1,
-        interimPos: 'left',
+        interimPos: 'front',
+        interimCoordinates: {
+            left: 0,
+            top: 0
+        },
+        interimSize: {
+            width: 30,
+            height: 30
+        },
+        rectAreaRatio: 2
     } 
     componentDidMount()
     {
@@ -65,7 +77,7 @@ class HouseConstructor extends React.Component
         this.camera.position.y = 2.5;
         this.camera.rotation.x = -Math.PI/20;
         this.controls = new THREE.OrbitControls(this.camera, houseConstructor);
-        this.controls.autoRotate = true;
+        //this.controls.autoRotate = true;
         this.controls.autoRotateSpeed = 3;
         this.controls.maxPolarAngle = Math.PI/2.3;
         this.controls.enableKeys = false;
@@ -93,11 +105,11 @@ class HouseConstructor extends React.Component
         //RESIZE LISTENER, ANIMATION LOOP
         window.addEventListener('resize', () => this.updateDimensions(houseConstructor));
         this.animate();
+    
     }
 
 
     updateDimensions = (field) =>{
-        console.dir(field);
         this.renderer.setSize(field.clientWidth,field.clientHeight);
         const aspectRatio = field.clientWidth/field.clientHeight;
         this.camera.aspect = aspectRatio;
@@ -219,16 +231,7 @@ class HouseConstructor extends React.Component
         const skyMaterial = new THREE.ShaderMaterial( {
             uniforms: uniforms,
             vertexShader: VertexShader,
-            fragmentShader: `
-            uniform vec3 topColor;
-			uniform vec3 bottomColor;
-			uniform float offset;
-			uniform float exponent;
-			varying vec3 vWorldPosition;
-			void main() {
-				float h = normalize( vWorldPosition + offset ).y;
-				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
-			}`,
+            fragmentShader: FragmentShader,
             side: THREE.BackSide
         } );
         const skyShape = new THREE.SphereBufferGeometry(1000, 12, 10);
@@ -241,39 +244,67 @@ class HouseConstructor extends React.Component
     }
 
     animate = () => {
+        //animation loop
         requestAnimationFrame(this.animate);
         this.renderer.render(this.scene, this.camera);
 
+        //camera controls upadte
         this.controls.update();
     }
 
-    someFunc = (ev) => {
-        const pos = this.state.interimPos;
-        const field = this.refs['someField'];
-        const size = this.refs['interimSize'];
-        const houseBaseSize = this.state.houseBaseProps.size;
-        const objSize = [
-            this.state.interimWidth,
-            this.state.interimHeight,
-            this.state.interimDepth
-        ];
+    createInterimObj = () => {
+        this.scene.remove(this.scene.getObjectByName('interimObj'));
+
+
+        const pos = this.state.interimPos,
+              houseBaseSize = this.state.houseBaseProps.size,
+              objSize = [
+                this.state.interimSize.width,
+                this.state.interimSize.height,
+                this.state.interimDepth
+                ],
+                left = this.state.interimCoordinates.left,
+                top = this.state.interimCoordinates.top;
+        let convertedObjSize = [];
+
 
         if(pos==='left' || pos==='right'){
-            field.style.height = (houseBaseSize[1]*parseInt(field.style.width))/houseBaseSize[0]+'px';
+            //field.style.height = (houseBaseSize[1]*parseInt(field.style.width))/houseBaseSize[0]+'px';
         }
         else if(pos==='front' || pos==='back'){
-
+            convertedObjSize = [
+                objSize[0]*4/100,
+                objSize[1]*2/100,
+                2
+            ]
         }
         else{
 
         }
-
-        size.style.width = this.state.interimWidth*100/houseBaseSize[0]+'%';
-        size.style.height = this.state.interimHeight*100/houseBaseSize[1]+'%';
         
-        const obj = this.create3Dobj('lambertMesh', {color: 'white'}, 'cuboid', objSize, pos);
-        console.log(pos);
-        this.scene.add(obj);
+        const interimObj = this.create3Dobj('lambertMesh', {color: 'white'}, 'cuboid', convertedObjSize, pos);
+        interimObj.name = 'interimObj';
+
+        console.log(interimObj.geometry.parameters.width);
+        interimObj.position.x = interimObj.geometry.parameters.width/2-2+(left*4/100);
+        interimObj.position.y = -interimObj.geometry.parameters.height/2+1-(top*2/100);
+        this.scene.add(interimObj);
+    }
+
+    updateProps = (left, top, width, height) => {
+
+        this.setState({
+            interimSize:{
+                width: width,
+                height: height
+            },
+            interimCoordinates:{
+                left: left,
+                top: top
+            }
+        });
+
+        this.createInterimObj();
     }
 
     render()
@@ -306,6 +337,7 @@ class HouseConstructor extends React.Component
                 >House Customizer</h1>
                 <MainMenu/>
             </div>
+
             <div style={{
                 width: '100%',
                 flex: '1 1 100%',
@@ -314,55 +346,10 @@ class HouseConstructor extends React.Component
                 margin: 0,
                 maxWidth: '100%'
             }} ref='houseConstructor'></div>
-            <div style={{
-                border: '2px solid black',
-                width: '103%',
-                padding: '10px'
-            }}>
-                <form>
-
-                    <select 
-                        onChange={ev => this.setState({interimPos: ev.target.value})}>
-                        <option value='top'>TOP</option>
-                        <option value='right'>RIGHT</option>
-                        <option value='left'>LEFT</option>
-                        <option value='front'>FRONT</option>
-                        <option value='back'>BACK</option>
-                    </select>
-                    <input 
-                        className='planeInput' 
-                        step='0.1'
-                        onChange={ev =>this.setState({interimWidth: ev.target.value})} 
-                        type='number'/>
-                    <input 
-                        className='planeInput' 
-                        step='0.1'
-                        onChange={ev => this.setState({interimHeight: ev.target.value})} 
-                        type='number'/>
-                    <input 
-                        className='planeInput' 
-                        step='0.1'
-                        onChange={ev => this.setState({interimDepth: ev.target.value})} 
-                        type='number'/>
-                </form>
-                <div ref='someField' style={{
-                    width: '150px',
-                    background: '#cecece'
-                }}>
-                    <div
-                    ref='interimSize'
-                    style={{
-                        border: '1px red solid',
-                        background: 'rgba(255,0,0, .2)'
-                    }}></div>
-                </div>
-                <button onMouseEnter={this.someFunc}>Position</button>
-                <button style={{
-                    background: 'none',
-                    border: '2px solid black',
-                    padding: '5px 15px'
-                }}>Add</button>
-            </div>
+            <ToolBar
+                pos={ev => this.setState({interimPos: ev.target.value})}
+                updateProps={this.updateProps}
+                areaRatio={this.state.rectAreaRatio}/>
         </div>
 
         </>);
