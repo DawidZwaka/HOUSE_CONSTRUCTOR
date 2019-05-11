@@ -7,6 +7,7 @@ const RectArea = Styled.div`
     width: ${props=>props.width}px
     height: ${props=>props.height}px
     background: black
+    flex: 0 0 ${props=>props.width}px
     position: relative
 `
 const Rct = Styled.div`
@@ -52,7 +53,7 @@ class DraggableRect extends React.Component{
                 edges: { left: true, right: true, top: true, bottom: true },
                 modifiers: [
                     interact.modifiers.restrictSize({
-                        min: { width: 50, height: 50 },
+                        min: { width: 10, height: 10 },
                       }),
                     interact.modifiers.restrictEdges({outer: 'parent'})
                 ],
@@ -73,12 +74,9 @@ class DraggableRect extends React.Component{
                   rectangle.style.width = event.rect.width+'px';
                   rectangle.style.height = event.rect.height+'px';
                   
-                  //props.updateProps(position.x, position.y, event.rect.width, event.rect.height);
                 }
               }).on('dragend resizeend', ()=> {
                 this.props.updateProps(100*position.x/this.props.width, 100*position.y/this.props.height, 100*size.width/this.props.width, 100*size.height/this.props.height)
-                console.log('wow');
-                return;
               });
   
         }

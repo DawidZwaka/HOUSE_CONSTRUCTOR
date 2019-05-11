@@ -1,5 +1,35 @@
 import React from 'react';
 import DraggableRect from '../DraggableRect/DraggableRect';
+import Styled from 'styled-components';
+
+const ToolBarHeader = Styled.h3`
+    position: absolute
+    left: 0
+    top: 50%
+    margin: 0
+    transform-origin: center center
+    transform: translate(-70%, -50%) rotateZ(-90deg)
+    
+`,
+    PosSelect = Styled.select`
+    
+`,
+    ObjDepth = Styled.input`
+    
+`,
+    AddBtn = Styled.button`
+    height: auto
+    padding: 5px 15px
+`,
+    ToolBarCnt = Styled.div`
+    border: 2px solid black
+    width: 103%
+    padding: 10px
+    position: relative
+    display: flex
+    justify-content: space-around
+    height: 200px
+`
 
 class ToolBar extends React.Component{
 
@@ -9,37 +39,28 @@ class ToolBar extends React.Component{
             height = 100;
 
         return(
-            <div style={{
-                border: '2px solid black',
-                width: '103%',
-                padding: '10px'
-            }}>
-            <div style={{display: 'flex',
-                        }}
-                ref='lol'>
+            <ToolBarCnt>
+                <ToolBarHeader>ToolBar</ToolBarHeader>
                 <form>
-                    <select 
-                        onChange={this.props.pos}>
+                    <PosSelect onChange={this.props.pos}>
                         <option value='top'>TOP</option>
                         <option value='right'>RIGHT</option>
                         <option value='left'>LEFT</option>
                         <option value='front'>FRONT</option>
                         <option value='back'>BACK</option>
-                    </select>
+                    </PosSelect>
+                    <ObjDepth type='number' step='0.1' min='0.1' max='10'>
+                    </ObjDepth>
                 </form>
-                    <DraggableRect
-                            width={width}
-                            height={height}
-                            updateProps={this.props.updateProps}/>
-                
-                <button style={{
-                    background: 'none',
-                    border: '2px solid black',
-                    padding: '5px 15px'
-                }}ref='xd'
-                >Add</button>
-            </div>
-            </div>);
+
+                <DraggableRect
+                        width={width}
+                        height={height}
+                        updateProps={this.props.updateProps}
+                />
+                <AddBtn>Add</AddBtn>
+
+            </ToolBarCnt>);
     }
 }
 

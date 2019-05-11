@@ -6,7 +6,23 @@ import VertexShader from '../../shaders/vertex';
 import FragmentShader from '../../shaders/fragmentShader';
 import Styled from 'styled-components';
 import ToolBar from '../../components/ToolBar/ToolBar';
+import PercToNum from '../../CustomFunctions/PrecToNum/PercToNum';
 
+const Constructor = Styled.div`
+    width: 100%
+    flex: 1 1 100%
+    padding: 0px
+    boxSizing: border-box
+    margin: 0
+    maxWidth: 100%
+`,
+    ConstructorCnt = Styled.div`
+    display: flex
+    width: 100%
+    flex-direction: column
+    align-items: center
+    justify-content: flex-start
+`
 
 class HouseConstructor extends React.Component
 {
@@ -252,29 +268,35 @@ class HouseConstructor extends React.Component
         this.controls.update();
     }
 
-    createInterimObj = () => {
+    createInterimObj = (destObj) => {
         this.scene.remove(this.scene.getObjectByName('interimObj'));
 
 
-        const pos = this.state.interimPos,
-              houseBaseSize = this.state.houseBaseProps.size,
-              objSize = [
-                this.state.interimSize.width,
-                this.state.interimSize.height,
-                this.state.interimDepth
-                ],
-                left = this.state.interimCoordinates.left,
-                top = this.state.interimCoordinates.top;
-        let convertedObjSize = [];
+        const interimObjPos = this.state.interimPos,
+              destObjSize = {
+                  width: destObj.size[0],
+                  height: destObj.size[1],
+                  depth: destObj.size[2]
+                },
+              interimObjPercSize = {
+                width: this.state.interimSize.width,
+                height: this.state.interimSize.height,
+                depth: this.state.interimDepth
+              },
+              interimObjPercCoord = {
+                left: this.state.interimCoordinates.left,
+                top: this.state.interimCoordinates.top
+              }
+        let   convertedObjSize = [];
 
 
-        if(pos==='left' || pos==='right'){
+        if(interimObjPos==='left' || interimObjPos==='right'){
             //field.style.height = (houseBaseSize[1]*parseInt(field.style.width))/houseBaseSize[0]+'px';
         }
-        else if(pos==='front' || pos==='back'){
+        else if(interimObjPos==='front' || interimObjPos==='back'){
             convertedObjSize = [
-                objSize[0]*4/100,
-                objSize[1]*2/100,
+                PercToNum(interimObjPercSize.width,destObjSize.width),
+                PercToNum(interimObjPercSize.height,destObjSize.height),
                 2
             ]
         }
@@ -282,12 +304,13 @@ class HouseConstructor extends React.Component
 
         }
         
-        const interimObj = this.create3Dobj('lambertMesh', {color: 'white'}, 'cuboid', convertedObjSize, pos);
+        const interimObj = this.create3Dobj('lambertMesh', {color: 'white'}, 'cuboid', convertedObjSize, interimObjPos);
         interimObj.name = 'interimObj';
 
-        console.log(interimObj.geometry.parameters.width);
-        interimObj.position.x = interimObj.geometry.parameters.width/2-2+(left*4/100);
-        interimObj.position.y = -interimObj.geometry.parameters.height/2+1-(top*2/100);
+
+        interimObj.position.x = interimObj.geometry.parameters.width/2-destObjSize.width/2+PercToNum(interimObjPercCoord.left, destObjSize.width);
+        interimObj.position.y = -interimObj.geometry.parameters.height/2+destObjSize.height/2-PercToNum(interimObjPercCoord.top, destObjSize.height);
+        console.log(interimObj.position);
         this.scene.add(interimObj);
     }
 
@@ -304,55 +327,23 @@ class HouseConstructor extends React.Component
             }
         });
 
-        this.createInterimObj();
+        this.createInterimObj(this.state.houseBaseProps);
     }
 
     render()
     {
         return(
-        <>
-        <div style={{
-            display: 'flex',
-            flex: '1 1 100%',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '70px 70px',
-            height: '100%',
-            boxSizing: 'border-box',
-            maxWidth: '1400px',
-            border: '2px solid black'
-        }}>
-            <div style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                transform: 'translateY(30%)',
-            }}>
-                <h1 style={{
-                    fontWeight: '100',
-                    width: '100%',
-                    margin: 0,
-                    lineHeight: 1,
-                }}
-                >House Customizer</h1>
-                <MainMenu/>
-            </div>
+        <ConstructorCnt>
 
-            <div style={{
-                width: '100%',
-                flex: '1 1 100%',
-                padding: '0px',
-                boxSizing: 'border-box',
-                margin: 0,
-                maxWidth: '100%'
-            }} ref='houseConstructor'></div>
+            <Constructor ref='houseConstructor'>
+            </Constructor>
+
             <ToolBar
                 pos={ev => this.setState({interimPos: ev.target.value})}
                 updateProps={this.updateProps}
                 areaRatio={this.state.rectAreaRatio}/>
-        </div>
-
-        </>);
+        </ConstructorCnt>
+        );
     }
 }
 
